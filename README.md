@@ -16,3 +16,5 @@ Shoestring starter solution for a simple inventory management system
 
 6. Click on Quick stock update page to locate an item and add/subtract quantities.
    ![image](https://github.com/DigitalShoestringSolutions/Inventory_management/assets/11146716/cd369b76-e085-4430-a4af-098315c3dd08)
+
+   Have fun!!
