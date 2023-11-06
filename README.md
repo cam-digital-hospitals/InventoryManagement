@@ -12,5 +12,7 @@ Shoestring starter solution for a simple inventory management system
    ![image](https://github.com/DigitalShoestringSolutions/Inventory_management/assets/11146716/c8cbc8d5-b2ad-4ab7-b2f9-1e2247bc330c)
    
 4. Click on Admin page to add new records, update existing records and see items that need reordering
-5. Click on Quick stock update page to locate an item and add/subtract quantities.
-   
+   ![image](https://github.com/DigitalShoestringSolutions/Inventory_management/assets/11146716/7ecb0ccb-4e49-40f3-9be4-45b811918b74)
+
+6. Click on Quick stock update page to locate an item and add/subtract quantities.
+   ![image](https://github.com/DigitalShoestringSolutions/Inventory_management/assets/11146716/cd369b76-e085-4430-a4af-098315c3dd08)
