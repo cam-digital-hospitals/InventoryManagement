@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Update</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function loadItems() {
+            var location = $('#location').val();
+            $.ajax({
+                url: '/user/get_items',  // Changed from get_components to get_items
+                data: { 'location': location },  // Changed from category to location
+                success: function(response) {
+                    $('#item').html(response);  // Changed from component to item
+                    $('#count').text('');
+                }
+            });
+        }
+
+        function updateCount(countChange) {
+            var item = $('#item').val();  // Changed from component to item
+            $.ajax({
+                url: '/user/update_count',
+                data: { 'item': item, 'count_change': countChange },  // Changed from component to item
+                success: function(response) {
+                    $('#count').text(response);
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            $('#increment').click(function() {
+                updateCount(1);
+            });
+
+            $('#decrement').click(function() {
+                updateCount(-1);
+            });
+
+            // Trigger the loadItems when the document is ready to populate the items dropdown
+            loadItems();
+        });
+    </script>
+
+<style>
+    body {
+      font-family: Arial, sans-serif; /* Use a modern font-family */
+    }
+    
+    .form-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 30px;
+    }
+  
+    form {
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 500px; /* Set a max-width for the form */
+    }
+  
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+  
+    input[type="text"],
+    input[type="number"],
+    input[type="radio"],
+    select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+  
+    input[type="radio"] {
+      width: auto;
+      margin-right: 5px;
+    }
+  
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background-color: #007bff;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+  
+    button:hover {
+      background-color: #0056b3;
+    }
+  
+    .radio-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+  
+    .radio-group label {
+      margin-right: 10px;
+      margin-bottom: 0;
+    }
+  </style>
+
+
+</head>
+<body>
+    <h1>Stock Update/ Order In</h1>
+    <div>
+        <label for="location">Select Location:</label>
+        <select id="location" onchange="loadItems()">  <!-- Changed from category to location -->
+            {{location_options}}  <!-- New placeholder for location options -->
+        </select>
+    </div>
+    <div>
+        <label for="item">Select Item:</label>  <!-- Changed from component to item -->
+        <select id="item"></select>  <!-- Changed from component to item -->
+    </div>
+    <div>
+        <label for="count">Available:</label>
+        <span id="count"></span>
+    </div>
+    <div>
+        <button id="increment">+</button>
+        <button id="decrement">-</button>
+    </div>
+
+    <!-- <script>
+        window.addEventListener('DOMContentLoaded', (event) => {
+          fetch('/admin/get_initial_item_count')
+          .then(response => response.text())
+          .then(count => {
+            // Assuming you have an element to display the count, replace 'countElementId' with that element's ID
+            document.getElementById('countElementId').textContent = count;
+          });
+        });
+    </script> -->
+
+</body>
+</html>

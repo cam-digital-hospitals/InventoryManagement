@@ -1,0 +1,12 @@
+
+version: '3'
+services:
+  web:
+    build: .
+    privileged: True
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/usr/src/app
+    environment:
+      - NAME=World

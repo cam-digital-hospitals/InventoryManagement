@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory Tracking</title>
+  <style>
+    .container {
+      display: flex;
+      justify-content: space-between;
+    }
+    .tile {
+      background-color: #f2f2f2;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+
+
+
+    .form-section, .table-section {
+      flex: 1; /* This assigns equal width to both sections */
+      padding: 10px; /* This adds some spacing around the content */
+    }
+    /* Additional styling here as needed */
+  </style>
+</head>
+
+
+<body>
+  <h1>Stock Management Console (Admin Panel)</h1>
+
+  <div class="container">
+    <div class="form-section">
+      <!-- Your forms go here -->
+      <div class="tile">
+        <h2>Update Existing Records</h2>
+        <form method="POST" action="/admin/update_stock">
+          <div>
+            <label for="pk">ID:</label>
+            <input type="text" id="pk" name="id" required>
+          </div>
+          <div>
+            <label for="location">Location:</label>
+            <input type="text" id="location" name="location" required>
+          </div>
+          <div>
+            <label for="item">Item:</label>
+            <input type="text" id="item" name="item" required>
+          </div>
+          <div>
+            <label for="category">Category:</label>
+            <input type="text" id="category" name="category">
+          </div>
+          <div>
+            <label for="quantity_in">Quantity In:</label>
+            <input type="number" id="quantity_in" name="quantity_in" required>
+          </div>
+          <div>
+            <label for="supplier">Supplier:</label>
+            <input type="text" id="supplier" name="supplier" required>
+          </div>
+          <div>
+            <label for="order_placed_yes">Order Placed - Yes:</label>
+            <input type="radio" id="order_placed_yes" name="order_placed" value="yes" required>
+            <label for="order_placed_no">No:</label>
+            <input type="radio" id="order_placed_no" name="order_placed" value="no" required>
+          </div>
+          <div>
+            <label for="minimum_required">Minimum Required:</label>
+            <input type="number" id="minimum_required" name="minimum_required" required>
+          </div>
+          <div>
+            <button type="submit">Update Stock</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="tile">
+        <h2>Add New Stock Item</h2>
+        <form method="POST" action="/admin/add_stock">
+          <div>
+            <label for="add_location">Location:</label>
+            <input type="text" id="add_location" name="location" required>
+          </div>
+          <div>
+            <label for="add_item">Item:</label>
+            <input type="text" id="add_item" name="item" required>
+          </div>
+          <div>
+            <label for="add_category">Category:</label>
+            <input type="text" id="add_category" name="category">
+          </div>
+          <div>
+            <label for="add_quantity_in">Quantity In:</label>
+            <input type="number" id="add_quantity_in" name="quantity_in" required>
+          </div>
+          <div>
+            <label for="add_supplier">Supplier:</label>
+            <input type="text" id="add_supplier" name="supplier" required>
+          </div>
+          <div>
+            <label for="add_order_placed_yes">Order Placed - Yes:</label>
+            <input type="radio" id="add_order_placed_yes" name="add_order_placed" value="yes" required>
+            <label for="add_order_placed_no">No:</label>
+            <input type="radio" id="add_order_placed_no" name="add_order_placed" value="no" required>
+          </div>
+          <div>
+            <label for="add_minimum_required">Minimum Required:</label>
+            <input type="number" id="add_minimum_required" name="minimum_required" required>
+          </div>
+          <div>
+            <button type="submit">Add Stock</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+
+    <div class="table-section">
+      <!-- Your table goes here -->
+      <div class="tile">
+        <h2>Reorder required</h2>
+        <table id="inventoryTable" border="1">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Last updated</th>
+              <th>Location</th>
+              <th>Item</th>
+              <th>Category</th>
+              <th>Qty. (in)</th>
+              <th>Supplier</th>
+              <th>Order placed</th>
+              <th>Min. Reqd.</th>
+
+            </tr>
+          </thead>
+          <tbody>
+            {table_rows}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  
+</body>
+</html>
+
+      

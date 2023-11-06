@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventory Management System</title>
+
+<style>
+    /* Add your CSS styles here */
+    .container {{
+      display: flex;
+    }}
+
+    .left {{
+      flex: 1;
+      margin-right: 20px;
+    }}
+
+    .right {{
+      flex: 1;
+    }}
+
+    .tile {{
+      background-color: #f2f2f2;
+      padding: 10px;
+      margin-bottom: 20px;
+    }}
+
+    table {{
+      width: 100%;
+      border-collapse: collapse;
+    }}
+
+    th, td {{
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }}
+
+    tbody tr:hover {{
+      background-color: #f5f5f5;
+    }}
+
+    @keyframes blink {{
+      0% {{ background-color: orange; }}
+      50% {{ background-color: #f5f5f5; }}
+      100% {{ background-color: orange; }}
+    }}
+
+    tbody tr.blinking {{
+      animation: blink 1s infinite;
+    }}
+
+    .button-container {{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px; /* Adjust this value as needed for vertical spacing */
+  }}
+
+  .button-container form {{
+    margin: 0 10px; /* Spacing between buttons */
+  }}
+
+    h1 {{
+    text-align: center;
+    margin-top: 50px; /* Adjust this value as needed for spacing */
+  }}
+
+  button {{
+    padding: 10px 20px; /* Button padding */
+    border: none; /* Remove border */
+    border-radius: 5px; /* Rounded corners */
+    background-color: #007bff; /* Bootstrap primary color */
+    color: white; /* Text color */
+    font-size: 16px; /* Text size */
+    cursor: pointer; /* Mouse cursor on hover */
+    transition: background-color 0.3s ease; /* Smooth background color transition */
+  }}
+
+  button:hover {{
+    background-color: #0056b3; /* Darker shade on hover */
+  }}
+
+
+
+  </style>
+</head>
+
+
+
+<body>
+<h1>Inventory Management System</h1>
+<div class="button-container">
+    <form action="/admin" method="get">
+        <button type="submit">Admin Page</button>
+    </form>
+    <form action="/user" method="get">
+        <button type="submit">Quick Stock Update</button>
+    </form>
+</div>
+
+<!-- Table to display inventory items -->
+<h2>Inventory Item Status (All)</h2>
+
+<select id="locationFilter" onchange="filterByLocation()">
+    <option value="">All Locations</option>
+    <option value="Location1">Location1</option>
+    <option value="Location2">Location2</option>
+    <option value="Location3">Location3</option>
+    <option value="Location4">Location4</option>
+    <option value="Location5">Location5</option>
+    <!-- Add other locations as needed -->
+  </select>
+
+
+<table id="inventoryTable" border="1">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Last updated</th>
+            <th>Location</th>
+            <th>Item</th>
+            <th>Category</th>
+            <th>Qty. (in)</th>
+            <th>Supplier</th>
+            <th>Order placed</th>
+            <th>Min. Reqd.</th>
+
+          </tr>
+        </thead>
+        <tbody>
+          {table_rows}
+        </tbody>
+      </table>
+
+      <script>
+        window.addEventListener('DOMContentLoaded', () => {{
+          const tableRows = document.querySelectorAll('tbody tr');
+          tableRows.forEach(row => {{
+            const availableCell = row.querySelector('td:nth-child(6)');
+            const availableValue = parseInt(availableCell.textContent);
+            const minCell = row.querySelector('td:nth-child(9)');
+            const minValue = parseInt(minCell.textContent);
+            if (availableValue < minValue) {{
+              row.classList.add('blinking');
+            }}
+          }});
+        }});
+      </script>
+
+<script>
+    function filterByLocation() {{
+      var selectedLocation = document.getElementById('locationFilter').value.replace(/\s/g, '').toLowerCase(); // Remove spaces and convert to lowercase
+      var table = document.getElementById('inventoryTable');
+      var tr = table.getElementsByTagName('tr');
+  
+      for (var i = 0; i < tr.length; i++) {{
+        var td = tr[i].getElementsByTagName('td')[2]; // Assuming the location is in the third column (index 2)
+        if (td) {{
+          var textValue = td.textContent.replace(/\s/g, '').toLowerCase() || td.innerText.replace(/\s/g, '').toLowerCase(); // Remove spaces and convert to lowercase
+          if (selectedLocation === "" || textValue === selectedLocation) {{
+            tr[i].style.display = "";
+          }} else {{
+            tr[i].style.display = "none";
+          }}
+        }} 
+      }}
+    }}
+  </script>
+    
+      
+
+</body>
+</html>
