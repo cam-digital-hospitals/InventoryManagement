@@ -103,15 +103,19 @@
 <!-- Table to display inventory items -->
 <h2>Inventory Item Status (All)</h2>
 
-<select id="locationFilter" onchange="filterByLocation()">
+<!-- <select id="locationFilter" onchange="filterByLocation()">
     <option value="">All Locations</option>
     <option value="Location1">Location1</option>
     <option value="Location2">Location2</option>
     <option value="Location3">Location3</option>
     <option value="Location4">Location4</option>
     <option value="Location5">Location5</option>
-    <!-- Add other locations as needed -->
-  </select>
+  </select> -->
+
+<select id="locationFilter" onchange="filterByLocation()">
+    <option value="">All Locations</option>
+    {location_options}
+</select>
 
 
 <table id="inventoryTable" border="1">

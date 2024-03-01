@@ -5,6 +5,40 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inventory Tracking</title>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+  $(document).ready(function() {
+      // Handle the submission of the 'Add New Stock Item' form
+      $("form[action='/admin/add_stock']").submit(function(event) {
+          event.preventDefault(); // Prevent the form from submitting through the browser
+          var formData = $(this).serialize(); // Serialize the form data
+
+          $.post('/admin/add_stock', formData, function(response) {
+              alert("New item added successfully");
+              // Optionally, clear the form fields here if needed
+          }).fail(function() {
+              alert("Error adding the item");
+          });
+      });
+
+      // Handle the submission of the 'Update Existing Records' form
+      $("form[action='/admin/update_stock']").submit(function(event) {
+          event.preventDefault(); // Prevent the form from submitting through the browser
+          var formData = $(this).serialize(); // Serialize the form data
+
+          $.post('/admin/update_stock', formData, function(response) {
+              alert("Existing stock changed successfully");
+              // Optionally, clear the form fields here if needed
+          }).fail(function() {
+              alert("Error updating the item");
+          });
+      });
+  });
+  </script>
+
+
+
   <style>
     .container {
       display: flex;
@@ -42,11 +76,11 @@
           </div>
           <div>
             <label for="location">Location:</label>
-            <input type="text" id="location" name="location" required>
+            <input type="text" id="location" name="location">
           </div>
           <div>
             <label for="item">Item:</label>
-            <input type="text" id="item" name="item" required>
+            <input type="text" id="item" name="item">
           </div>
           <div>
             <label for="category">Category:</label>
@@ -54,21 +88,21 @@
           </div>
           <div>
             <label for="quantity_in">Quantity In:</label>
-            <input type="number" id="quantity_in" name="quantity_in" required>
+            <input type="number" id="quantity_in" name="quantity_in">
           </div>
           <div>
             <label for="supplier">Supplier:</label>
-            <input type="text" id="supplier" name="supplier" required>
+            <input type="text" id="supplier" name="supplier">
           </div>
           <div>
             <label for="order_placed_yes">Order Placed - Yes:</label>
-            <input type="radio" id="order_placed_yes" name="order_placed" value="yes" required>
+            <input type="radio" id="order_placed_yes" name="order_placed" value="yes">
             <label for="order_placed_no">No:</label>
-            <input type="radio" id="order_placed_no" name="order_placed" value="no" required>
+            <input type="radio" id="order_placed_no" name="order_placed" value="no">
           </div>
           <div>
             <label for="minimum_required">Minimum Required:</label>
-            <input type="number" id="minimum_required" name="minimum_required" required>
+            <input type="number" id="minimum_required" name="minimum_required">
           </div>
           <div>
             <button type="submit">Update Stock</button>

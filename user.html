@@ -5,40 +5,58 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         function loadItems() {
-            var location = $('#location').val();
-            $.ajax({
-                url: '/user/get_items',  // Changed from get_components to get_items
-                data: { 'location': location },  // Changed from category to location
-                success: function(response) {
-                    $('#item').html(response);  // Changed from component to item
-                    $('#count').text('');
-                }
-            });
-        }
-
-        function updateCount(countChange) {
-            var item = $('#item').val();  // Changed from component to item
-            $.ajax({
-                url: '/user/update_count',
-                data: { 'item': item, 'count_change': countChange },  // Changed from component to item
-                success: function(response) {
-                    $('#count').text(response);
-                }
-            });
-        }
-
-        $(document).ready(function() {
-            $('#increment').click(function() {
-                updateCount(1);
-            });
-
-            $('#decrement').click(function() {
-                updateCount(-1);
-            });
-
-            // Trigger the loadItems when the document is ready to populate the items dropdown
-            loadItems();
+        var location = $('#location').val();
+        $.ajax({
+            url: '/user/get_items',
+            data: { 'location': location },
+            success: function(response) {
+                $('#item').html(response);
+                updateCount(0); // Load the initial count for the first item in the dropdown
+            }
         });
+    }
+
+    function updateCount(countChange) {
+        var item = $('#item').val();
+        $.ajax({
+            url: '/user/update_count',
+            data: { 'item': item, 'count_change': countChange },
+            success: function(response) {
+                $('#count').text(response);
+                // Clear the input fields after update
+                $('#added').val('');
+                $('#withdrawn').val('');
+            }
+        });
+    }
+
+    function handleStockUpdate() {
+        var added = $('#added').val();
+        var withdrawn = $('#withdrawn').val();
+        
+        // Determine countChange based on input fields
+        if (added && withdrawn) {
+            alert("Please enter a value in either Added or Withdrawn, not both.");
+            return;
+        } else if (!added && !withdrawn) {
+            alert("Please enter a value to update the stock.");
+            return;
+        }
+
+        var countChange = added ? parseInt(added) : -parseInt(withdrawn);
+        updateCount(countChange);
+    }
+
+    $(document).ready(function() {
+        $('#updateStock').click(handleStockUpdate);
+        
+        // Initial items load
+        loadItems();
+
+        $('#item').change(function() {
+            updateCount(0); // Update the count whenever a new item is selected
+        });
+    });
     </script>
 
 <style>
@@ -125,21 +143,22 @@
         <label for="count">Available:</label>
         <span id="count"></span>
     </div>
-    <div>
+    <!-- <div>
         <button id="increment">+</button>
         <button id="decrement">-</button>
+    </div> -->
+    <div>
+      <label for="added">Added:</label>
+      <input type="number" id="added" placeholder="Enter quantity to add" />
+    </div>
+    <div>
+        <label for="withdrawn">Withdrawn:</label>
+        <input type="number" id="withdrawn" placeholder="Enter quantity to withdraw" />
+    </div>
+    <div>
+        <button id="updateStock">Update Stock</button>
     </div>
 
-    <!-- <script>
-        window.addEventListener('DOMContentLoaded', (event) => {
-          fetch('/admin/get_initial_item_count')
-          .then(response => response.text())
-          .then(count => {
-            // Assuming you have an element to display the count, replace 'countElementId' with that element's ID
-            document.getElementById('countElementId').textContent = count;
-          });
-        });
-    </script> -->
 
 </body>
 </html>

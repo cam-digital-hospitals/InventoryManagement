@@ -2,6 +2,8 @@ import cherrypy
 import sqlite3
 import threading
 import os
+import datetime
+
 
 # Cherrypy configuration
 cherrypy.config.update({
@@ -44,24 +46,33 @@ def get_db_cursor():
 
 
 class Root:
-    @cherrypy.expose
     
     @cherrypy.expose
     def index(self):
-        # Fetch data from the database
         cursor = get_db_cursor()
+        
+        # Fetching unique locations from the database
+        cursor.execute("SELECT DISTINCT location FROM stock")
+        unique_locations = cursor.fetchall()
+        
+        # Generating options for the location filter dropdown
+        location_options = "\n".join(f'<option value="{location[0]}">{location[0]}</option>' for location in unique_locations)
+        
+        # Fetch all stock items
         cursor.execute("SELECT * FROM stock")
         rows = cursor.fetchall()
-
+        
         # Generate HTML table rows from the fetched data
         table_rows = ""
         for row in rows:
             table_rows += "<tr>" + "".join(f"<td>{cell}</td>" for cell in row) + "</tr>"
-
-        # Serve the home.html file with the table rows
+        
+        # Serve the home.html file with the table rows and location options
         with open(os.path.join(os.path.dirname(__file__), "home.html"), "r") as file:
             content = file.read()
-            return content.format(table_rows=table_rows)
+            # Note: Assuming {table_rows} and a new placeholder {location_options} exist in your HTML template
+            return content.format(table_rows=table_rows, location_options=location_options)
+
 
 
 
@@ -102,26 +113,48 @@ class Admin:
 
 
     @cherrypy.expose
-    def update_stock(self, id, location, item, category, quantity_in, supplier, order_placed, minimum_required):
-    # Update an existing entry in the "inventory" table
-        cursor = get_db_cursor()
-        cursor.execute(
-            '''UPDATE stock 
-            SET location=?, 
-                item=?, 
-                category=?, 
-                quantity_in=?, 
-                supplier=?, 
-                order_placed=?, 
-                minimum_required=?,
-                timestamp=CURRENT_TIMESTAMP
-            WHERE id=?''',
-            (location, item, category, quantity_in, supplier, order_placed, minimum_required, id))
-        get_db_connection().commit()
+    def update_stock(self, id, location='', item='', category='', quantity_in='', supplier='', order_placed='', minimum_required=''):
+        # Initialize a dictionary to hold the fields to update
+        fields_to_update = {}
 
+        # Check if the field was provided (not None or an empty string) and add it to the dictionary
+        if location: fields_to_update['location'] = location
+        if item: fields_to_update['item'] = item
+        if category: fields_to_update['category'] = category
+        if quantity_in: fields_to_update['quantity_in'] = quantity_in
+        if supplier: fields_to_update['supplier'] = supplier
+        if order_placed: fields_to_update['order_placed'] = order_placed
+        if minimum_required: fields_to_update['minimum_required'] = minimum_required
+
+        # Build the SQL update string dynamically
+        update_parts = []
+        params = []
+        for field, value in fields_to_update.items():
+            update_parts.append(f"{field}=?")
+            params.append(value)
+
+        # Always update the timestamp when updating any field
+        update_parts.append("timestamp=CURRENT_TIMESTAMP")
+
+        # Ensure there are fields to update
+        if not update_parts:
+            # Handle the case where no fields were provided for update
+            print("No fields provided for update.")
+            return
+
+        # Complete the SQL query string
+        sql_query = "UPDATE stock SET " + ", ".join(update_parts) + " WHERE id=?"
+        params.append(id)
+
+        # Execute the update query
+        cursor = get_db_cursor()
+        cursor.execute(sql_query, params)
+        get_db_connection().commit()
 
         # Redirect back to the admin page
         raise cherrypy.HTTPRedirect('/admin')
+
+
 
     @cherrypy.expose
     def add_stock(self, location, item, category, quantity_in, supplier, add_order_placed, minimum_required):
@@ -185,10 +218,13 @@ class User:
         current_quantity = cursor.fetchone()[0]
         new_quantity = current_quantity + int(count_change)
 
-        cursor.execute("UPDATE stock SET quantity_in=? WHERE item=?", (new_quantity, item))
+        now = datetime.datetime.now()
+
+        cursor.execute("UPDATE stock SET quantity_in=?, timestamp=? WHERE item=?", (new_quantity, now, item))
         get_db_connection().commit()
 
         return str(new_quantity)
+
 
     @cherrypy.expose
     def update_quantity(self, item, quantity_change):
