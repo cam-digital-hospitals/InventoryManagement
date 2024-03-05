@@ -4,7 +4,7 @@ Shoestring starter solution for a simple inventory management system
 # Install Steps:
 1. Install docker and docker-compose on your device.
 2. Download the solution from github
-3. in the solution folder, open a terminal and run "docker-compose up -d --build"
+3. in the solution folder, open a terminal and run "docker compose up -d --build"
 
 # Operating Steps:
 1. Ensure that the solution is up by checking the following command on the terminal: "docker container ls"
