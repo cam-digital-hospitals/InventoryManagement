@@ -1,0 +1,150 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Issue Form</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+    $('#item_select').change(function() {
+        var itemId = $(this).val();
+        if (itemId) {
+            // Existing AJAX call for item details
+            $.getJSON(`/get-item-details/${itemId}`, function(data) {
+                $('#supplier').val(data.supplier || 'N/A');
+                $('#units').val(data.units);
+                $('#minimum_units').val(data.minimum_units);
+                $('#cost').val(data.cost);
+                $('#withdrawal_date').val(new Date().toISOString().slice(0, 10));
+                // More fields updated here...
+            }).fail(function() {
+                console.error('Error fetching item details');
+                // Reset item details fields if error
+            });
+
+            // New AJAX call for updating locations based on the selected item
+            $.getJSON(`/get-item-locations/${itemId}`, function(locations) {
+                var locationSelect = $('#location_select');
+                locationSelect.empty(); // Clear existing options
+                locationSelect.append('<option value="">Select a Location</option>'); // Default option
+                $.each(locations, function(index, location) {
+                    locationSelect.append($('<option></option>').attr('value', location.id).text(location.name));
+                });
+            }).fail(function() {
+                console.error('Error fetching item locations');
+                $('#location_select').empty().append('<option value="">Select a Location</option>'); // Reset if error
+            });
+        } else {
+            // Reset fields if no item is selected
+            $('#supplier').val('');
+            $('#units').val('');
+            $('#minimum_units').val('');
+            $('#cost').val('');
+            $('#location_select').empty().append('<option value="">Select a Location</option>'); // Reset locations
+                }
+            });
+
+            // Optionally, trigger the change event on page load
+            // $('#item_select').trigger('change');
+        });
+
+    </script>
+
+
+    <!-- <script>
+        $(document).ready(function() {
+            $('#item_select').change(function() {
+                var itemId = $(this).val();
+                if (itemId) {
+                    $.getJSON(`/get-item-details/${itemId}`, function(data) {
+                        $('#supplier').val(data.supplier || 'N/A');
+                        $('#units').val(data.units);
+                        $('#minimum_units').val(data.minimum_units);
+                        $('#cost').val(data.cost);
+                        $('#withdrawal_date').val(new Date().toISOString().slice(0, 10));
+                    }).fail(function() {
+                        console.error('Error fetching item details');
+                        // Reset fields if error
+                        $('#supplier').val('');
+                        $('#units').val('');
+                        $('#minimum_units').val('');
+                        $('#cost').val('');
+                    });
+                } else {
+                    // Reset fields if no item is selected
+                    $('#supplier').val('');
+                    $('#units').val('');
+                    $('#minimum_units').val('');
+                    $('#cost').val('');
+                }
+            });
+        
+            // Optionally, trigger the change event on page load if you want to auto-select and populate details for the first item
+            // $('#item_select').trigger('change');
+        });
+        </script> -->
+
+    <link rel="stylesheet" href="{% static 'inventory_app/css/admin.css' %}">
+</head>
+<body>
+    <h1>Issue Form</h1>
+
+    <div class="button-container">
+        <form action="/" method="get">
+          <button type="submit">Home</button>
+        </form>
+    </div>
+
+    <form id="itemForm" method="POST" action="{% url 'submit_withdrawal' %}">
+        {% csrf_token %}
+    <label for="item_select">Item:</label>
+    <select id="item_select" name="item">
+        <option value="">Select an Item</option>
+        {% for item in items %}
+        <option value="{{ item.id }}">{{ item.item }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="location_select">Location:</label>
+    <select id="location_select" name="location">
+        <option value="">Select a Location</option>
+        <!-- Options will be added dynamically based on the item selected -->
+    </select>
+
+
+    <label for="supplier">Supplier:</label>
+    <input type="text" id="supplier" name="supplier" readonly>
+
+    <label for="units">Units:</label>
+    <input type="text" id="units" name="units" readonly>
+
+    <label for="minimum_units">Minimum Units:</label>
+    <input type="text" id="minimum_units" name="minimum_units" readonly>
+
+    <label for="cost">Cost:</label>
+    <input type="text" id="cost" name="cost" readonly>
+
+    <label for="withdrawn_by">Withdrawn By:</label>
+    <input type="text" id="withdrawn_by" name="withdrawn_by">
+
+    <label for="units_withdrawn">Units Withdrawn:</label>
+    <input type="number" id="units_withdrawn" name="units_withdrawn">
+
+    <input type="hidden" id="withdrawal_date" name="withdrawal_date" value="">
+    <br><br>
+    <button type="submit">Submit</button>
+</form>
+
+
+{% if messages %}
+<script>
+    window.onload = function() {
+        {% for message in messages %}
+        alert("{{ message }}");
+        {% endfor %}
+    }
+</script>
+{% endif %}
+</body>
+</html>

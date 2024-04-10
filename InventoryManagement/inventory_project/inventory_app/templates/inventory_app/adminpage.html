@@ -1,0 +1,181 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- <script src="{% static 'inventory_app/js/admin.js' %}" defer></script> -->
+
+
+
+  <script>
+    function filterBySecondColumn() {{
+      var filterText = document.getElementById('searchInput').value.toLowerCase(); // Convert to lowercase
+      var table = document.getElementById('stock_table');
+      var tr = table.getElementsByTagName('tr');
+  
+      for (var i = 0; i < tr.length; i++) {{
+        var td = tr[i].getElementsByTagName('td')[1]; // Target the second column (index 1)
+        if (td) {{
+          var textValue = td.textContent.toLowerCase() || td.innerText.toLowerCase(); // Convert to lowercase
+          if (filterText === "" || textValue.includes(filterText)) {{
+            tr[i].style.display = "";
+          }} else {{
+            tr[i].style.display = "none";
+          }}
+        }} 
+      }}
+    }}
+  </script>
+
+  <script>
+  // Define dynamic URLs for JavaScript
+  window.urls = {
+    downloadStockReportUrl: "{% url 'download_stock_report' %}",
+    // Add other URLs as needed
+  };
+</script>
+
+<script>
+  function openFormActionInNewTab(event) {
+    event.preventDefault(); // Prevent the default form submission
+    window.open(event.target.action, '_blank'); // Open the form action in a new tab
+  }
+</script>
+
+<script>
+  // Function to toggle the visibility of Add and Update forms
+  function toggleForms() {
+    var isChecked = document.getElementById('formToggle').checked;
+    if (isChecked) {
+      // Show Update form, hide Add form
+      document.getElementById('updateForm').style.display = 'block';
+      document.getElementById('addForm').style.display = 'none';
+    } else {
+      // Show Add form, hide Update form
+      document.getElementById('addForm').style.display = 'block';
+      document.getElementById('updateForm').style.display = 'none';
+    }
+  }
+  
+  // Call toggleForms() on page load to ensure correct form is shown based on slider's default state
+  document.addEventListener('DOMContentLoaded', function() {
+    toggleForms();
+  });
+</script>
+
+
+<style>
+  @keyframes blinker {  
+    50% { background-color: orange; }
+  }
+  .blink-row {
+    animation: blinker 1s linear infinite;
+  }
+  #updateForm {
+      display: none;
+    }
+</style>
+
+
+
+  <title>Inventory Tracking</title>
+  <link rel="stylesheet" href="{% static 'inventory_app/css/admin.css' %}">
+</head>
+
+<body>
+  <h1>Stock Management Console (Admin Panel)</h1>
+
+  <div class="button-container">
+    <form action="/" method="get">
+      <button type="submit">Home</button>
+    </form>
+
+    <div class="slider-container">
+      <span class="slider-label">Add New Stock</span>
+      <label class="switch">
+          <input type="checkbox" id="formToggle" onchange="toggleForms()">
+          <span class="slider round"></span>
+      </label>
+      <span class="slider-label">Update Existing Stock</span>
+    </div>
+
+    <form action="{% url 'download_stock_report' %}" method="get">
+      <button type="submit">Download Stock Report</button>
+    </form>
+  </div>
+
+  <div class="container">
+    <div class="left">
+      
+      <div class="tile" id="addForm">
+        <!-- Add New Stock Form -->
+        <!-- Ensure you replace 'your_add_stock_url' with your actual Django URL name -->
+        <form method="POST" action="{% url 'admin_view' %}">
+          {% csrf_token %}
+          {{ add_form.as_p }}
+          <button type="submit" name="add">Add Stock</button>
+        </form>
+      </div>
+
+      <div class="tile" id="updateForm">
+        <div class="center-form">
+          <form action="/admin" method="get" onsubmit="openFormActionInNewTab(event)">
+            <button type="submit">Update Records</button>
+          </form>
+        </div>
+        <!-- <form method="POST" action="{% url 'admin_view' %}">
+          {% csrf_token %}
+          {{ add_form.as_p }}
+          <button type="submit" name="update">Update Stock</button>
+        </form> --> 
+      </div>
+
+    </div>
+
+    <div class="right">
+      <div class="tile">
+        <h2>Stock Overview</h2>
+        <input type="text" id="searchInput" onkeyup="filterBySecondColumn()" placeholder="Search for items...">
+        <table id="stock_table">
+          <thead>
+            <tr>
+              <th>U-ID</th>
+              <th>Item</th>
+              <th>Location</th>
+              <th>Supplier</th>
+              <th>Qty (per Unit)</th>
+              <th>Units</th>
+              <th>Minimum reqd.</th>
+              <th>Cost</th>
+              <!-- <th>Request date</th> -->
+              <!-- <th>Ordered by</th> -->
+              <!-- <th>PO number ref.</th> -->
+              <th>Order</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+                <tr class="{% if item.unit <= item.minimum_unit %}blink-row{% endif %}">
+                    <td>{{ item.id }}</td>
+                    <td>{{ item.item }}</td>
+                    <td>{{ item.location.name }}</td>
+                    <td>{{ item.supplier }}</td>
+                    <td>{{ item.quantity_per_unit }}</td>
+                    <td>{{ item.unit }}</td>
+                    <td>{{ item.minimum_unit }}</td>
+                    <td>{{ item.cost }}</td>
+                    <td><form action="/order" method="get"><button type="submit">Order</button></form></td>
+                    <!-- <td><button type="submit" name="order" >Order</button></td> -->
+                </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
+  
+
+</body>
+</html>

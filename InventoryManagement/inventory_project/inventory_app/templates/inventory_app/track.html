@@ -1,0 +1,102 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Inventory Tracking</title>
+  <link rel="stylesheet" href="{% static 'inventory_app/css/home.css' %}">
+
+  <script>
+    function filterBySecondColumn() {{
+      var filterText = document.getElementById('searchInput').value.toLowerCase(); // Convert to lowercase
+      var table = document.getElementById('stock_table');
+      var tr = table.getElementsByTagName('tr');
+  
+      for (var i = 0; i < tr.length; i++) {{
+        var td = tr[i].getElementsByTagName('td')[0]; // Target the second column (index 1)
+        if (td) {{
+          var textValue = td.textContent.toLowerCase() || td.innerText.toLowerCase(); // Convert to lowercase
+          if (filterText === "" || textValue.includes(filterText)) {{
+            tr[i].style.display = "";
+          }} else {{
+            tr[i].style.display = "none";
+          }}
+        }} 
+      }}
+    }}
+  </script>
+
+<script>
+  function filterByThirdColumn() {{
+    var filterText = document.getElementById('searchInput2').value.toLowerCase(); // Convert to lowercase
+    var table = document.getElementById('stock_table');
+    var tr = table.getElementsByTagName('tr');
+
+    for (var i = 0; i < tr.length; i++) {{
+      var td = tr[i].getElementsByTagName('td')[1]; // Target the second column (index 1)
+      if (td) {{
+        var textValue = td.textContent.toLowerCase() || td.innerText.toLowerCase(); // Convert to lowercase
+        if (filterText === "" || textValue.includes(filterText)) {{
+          tr[i].style.display = "";
+        }} else {{
+          tr[i].style.display = "none";
+        }}
+      }} 
+    }}
+  }}
+</script>
+</head>
+
+<body>
+<h1>Item Withdrawal Tracking</h1>
+
+<div class="button-container">
+    <form action="/" method="get">
+      <button type="submit">Home</button>
+    </form>
+
+
+<!-- <form action="" method="get">
+    <button type="submit" name="export">Export as Excel</button>
+</form> -->
+</div>
+
+<!-- <form method="get">
+    <label for="withdrawn_by">Withdrawn By:</label>
+    <input type="text" id="withdrawn_by" name="withdrawn_by" value="{{ request.GET.withdrawn_by }}">
+
+    <label for="item">Item:</label>
+    <select id="item" name="item">
+        <option value="">All Items</option>
+        {% for item in items %}
+        <option value="{{ item.id }}" {% if request.GET.item == item.id|stringformat:"s" %}selected{% endif %}>{{ item.item }}</option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Filter</button>
+    <a href="?export">Export as CSV</a>
+</form> -->
+
+<input type="text" id="searchInput" onkeyup="filterBySecondColumn()" placeholder="Search by Item...">
+<input type="text" id="searchInput2" onkeyup="filterByThirdColumn()" placeholder="Search by Location...">
+
+<table id="stock_table">
+    <tr>
+        <th>Item</th>
+        <th>Location</th>
+        <th>Date Withdrawn</th>
+        <th>Units Withdrawn</th>
+        <th>Withdrawn By</th>
+    </tr>
+    {% for withdrawal in withdrawals %}
+    <tr>
+        <td>{{ withdrawal.item }}</td>
+        <td>{{ withdrawal.location }}</td>
+        <td>{{ withdrawal.date_withdrawn }}</td>
+        <td>{{ withdrawal.units_withdrawn }}</td>
+        <td>{{ withdrawal.withdrawn_by }}</td>
+    </tr>
+    {% endfor %}
+</table>
+</body>
+</html>
