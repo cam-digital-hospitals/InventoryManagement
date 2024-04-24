@@ -1,5 +1,5 @@
 # Use a Python image compatible with the Raspberry Pi's architecture
-FROM arm32v7/python:3.8-slim
+FROM python:3.8
 
 # Set environment variables to prevent Python from writing pyc files to disc and buffering stdout and stderr
 ENV PYTHONDONTWRITEBYTECODE 1
