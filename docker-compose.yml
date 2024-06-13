@@ -3,9 +3,12 @@ version: '3.8'
 services:
   web:
     build: .
-    command: python3 manage.py runserver 0.0.0.0:8000
+    # Note on the below line: if the bash wrapper is removed, not all 3 python commands run.
+    command: bash -c "python manage.py migrate && python manage.py collectstatic --noinput && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
     ports:
       - "8000:8000"
     restart: unless-stopped
+    env_file:
+      - django_secret_key

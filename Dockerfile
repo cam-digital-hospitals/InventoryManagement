@@ -14,10 +14,3 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # Copy project
 COPY . /code/
-
-# Run migrations and collect static files
-RUN python manage.py migrate
-RUN python manage.py collectstatic --noinput
-
-# Command to run the Django development server
-CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
