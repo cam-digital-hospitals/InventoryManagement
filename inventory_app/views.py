@@ -157,7 +157,7 @@ def analyze(request):
     return render(request, 'inventory_app/analyze.html', context)
 
 
-def user(request): #this is the base withdrawl page
+def user(request): #this is the base withdrawal page
     items = InventoryItem.objects.all().order_by('item')  # Adjust ordering as needed
     return render(request, 'inventory_app/user.html', {'items': items})
 
