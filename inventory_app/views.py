@@ -12,7 +12,7 @@ from django.db.models import F, ExpressionWrapper, fields
 from django.db import transaction
 from django.db.models import Count, Case, When, IntegerField, Sum, Max, Avg, F
 from django.db.models.functions import Coalesce
-
+from urllib.parse import unquote as urlunquote
 
 
 
@@ -161,6 +161,67 @@ def user(request): #this is the base withdrawal page
     items = InventoryItem.objects.all().order_by('item')  # Adjust ordering as needed
     return render(request, 'inventory_app/user.html', {'items': items})
 
+def stock_check(request):
+    # items = InventoryItem.objects.all().order_by('item')
+    locations = Location.objects.all().order_by('name')  # Get all locations, order by name
+    return render(request, 'inventory_app/stockcheck.html', {'locations': locations})
+
+def get_items_for_location(request, location_name):
+    decoded_name = urlunquote(location_name)  # Decode the URL-encoded location name
+    location = Location.objects.filter(name=decoded_name).first()
+    if location:
+        items = InventoryItem.objects.filter(location=location)
+        items_data = [{'id': item.id, 'name': item.item, 'units': item.unit} for item in items]
+        return JsonResponse({'items': items_data})
+    else:
+        return JsonResponse({'error': 'Location not found'}, status=404)
+
+def update_units_by_location(request):
+    if request.method == 'POST':
+        print(request.POST)  # Print the data received to debug
+        location_name = request.POST.get('location')
+        location = Location.objects.filter(name=location_name).first()
+        if not location:
+            return JsonResponse({'status': 'error', 'message': 'Location not found'}, status=404)
+
+        responses = []
+        items = InventoryItem.objects.filter(location=location)
+
+        for item in items:
+            item_id = f'units_{item.id}'
+            units_value = request.POST.get(item_id)
+            if units_value is None:
+                responses.append(f"No units provided for {item.item}.")
+                continue
+            try:
+                new_units = int(units_value)
+                if new_units != item.unit:
+                    old_units = item.unit
+                    item.unit = new_units
+                    item.save()
+
+                    # Calculate the difference and adjust the sign
+                    units_difference = old_units - new_units
+                    if units_difference < 0:
+                        units_difference = units_difference  # Make negative differences positive
+                    else:
+                        units_difference = units_difference  # Make positive differences negative
+
+                    # Create a record in ItemWithdrawal with the adjusted difference
+                    ItemWithdrawal.objects.create(
+                        item=item,
+                        location=location,
+                        date_withdrawn=timezone.now(),
+                        units_withdrawn=units_difference,  # Use the adjusted difference
+                        withdrawn_by="Stock Check Audit"
+                    )
+                    responses.append(f"Updated {item.item} to {new_units} units, change recorded as {units_difference}.")
+            except ValueError:
+                responses.append(f"Invalid units for {item.item}")
+
+        return JsonResponse({'status': 'success', 'messages': responses})
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
 
 def order(request):
     items = InventoryItem.objects.all().order_by('item')
@@ -406,3 +467,42 @@ def consolidate_stock(request, order_id):
             return JsonResponse({'success': False, 'message': 'Order already completed.'})
     return JsonResponse({'success': False, 'message': 'Invalid request'})
 
+
+def item_search(request):
+    item_name = request.GET.get('name', '')
+    if not item_name:
+        return JsonResponse({'error': 'No item name provided'}, status=400)
+
+    items = InventoryItem.objects.filter(item__icontains=item_name)
+    if not items.exists():
+        return JsonResponse({'error': 'No items found'}, status=404)
+
+    data = [{
+        'item_name': item.item,
+        'location': item.location.name,
+        'units': item.unit
+    } for item in items]
+
+    count = items.count()
+    client_ip = get_client_ip(request)
+    server_ip = get_server_ip()
+
+    return JsonResponse({
+        'items': data,
+        'count': count,
+        'client_ip': client_ip,
+        'server_ip': server_ip
+    }, safe=False)
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+def get_server_ip():
+    hostname = socket.gethostname()
+    server_ip = socket.gethostbyname(hostname)
+    return server_ip
