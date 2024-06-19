@@ -53,7 +53,7 @@ def home(request):
 
 
 
-def analyze(request):
+def analyse(request):
     items = InventoryItem.objects.all()  # Retrieve all inventory items
 
     # items_on_order = OrderItem.objects.filter(on_order__gt=0).count()
@@ -154,7 +154,7 @@ def analyze(request):
         'items_forecast': items_forecast,
     }
 
-    return render(request, 'inventory_app/analyze.html', context)
+    return render(request, 'inventory_app/analyse.html', context)
 
 
 def user(request): #this is the base withdrawal page
@@ -176,18 +176,18 @@ def track(request):
 
 
 def admin_view(request):
-    # Initialize forms outside of the if block to ensure they are available in the entire function scope
+    # Initialise forms outside of the if block to ensure they are available in the entire function scope
     add_form = StockAddForm()
     update_form = StockUpdateForm()
 
     if request.method == 'POST':
         if 'add' in request.POST:  # If the add operation is requested
-            add_form = StockAddForm(request.POST)  # Reinitialize with posted data
+            add_form = StockAddForm(request.POST)  # Reinitialise with posted data
             if add_form.is_valid():
                 add_form.save()
                 return redirect('admin_view')  # Redirect to avoid double posting
         elif 'update' in request.POST:  # If the update operation is requested
-            update_form = StockUpdateForm(request.POST)  # Reinitialize with posted data
+            update_form = StockUpdateForm(request.POST)  # Reinitialise with posted data
             if update_form.is_valid():
                 update_form.save()
                 return redirect('admin_view')  # Redirect to avoid double posting

@@ -15,7 +15,7 @@ urlpatterns = [
     path('order_view/', views.order_view, name='order_view'),
     path('consolidate-stock/<int:order_id>/', views.consolidate_stock, name='consolidate_stock'),
     path('get-locations-for-item/<int:item_id>/', views.get_locations_for_item, name='get-locations-for-item'),
-    path('analyze/', views.analyze, name='analyze'),
+    path('analyse/', views.analyse, name='analyse'),
 
     # Define other URLs for your app
 ]
