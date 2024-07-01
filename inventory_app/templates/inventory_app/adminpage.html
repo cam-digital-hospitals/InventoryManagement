@@ -113,6 +113,9 @@
         <form method="POST" action="{% url 'admin_view' %}">
           {% csrf_token %}
           {{ add_form.as_p }}
+          {% if add_error_message %}
+            <p style="color: red;">{{ add_error_message }}</p>
+          {% endif %}
           <button type="submit" name="add">Add Stock</button>
         </form>
       </div>

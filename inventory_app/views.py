@@ -255,11 +255,17 @@ def admin_view(request):
 
     items = InventoryItem.objects.all()  # Fetch items regardless of POST or GET request
 
-    
+    # Check if forms are valid and set error messages if not
+    if 'add' in request.POST and not add_form.is_valid():
+        add_error_message = "Please fill out all required fields."
+    else:
+        add_error_message = None
+
     return render(request, 'inventory_app/adminpage.html', {
         'update_form': update_form,
         'add_form': add_form,
         'items': items,
+        'add_error_message': add_error_message,
     })
 
 
