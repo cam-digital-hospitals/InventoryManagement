@@ -254,10 +254,12 @@ def admin_view(request):
                 return redirect('admin_view')  # Redirect to avoid double posting
 
     items = InventoryItem.objects.all()  # Fetch items regardless of POST or GET request
+
+    
     return render(request, 'inventory_app/adminpage.html', {
         'update_form': update_form,
         'add_form': add_form,
-        'items': items
+        'items': items,
     })
 
 
@@ -333,9 +335,17 @@ def download_stock_report(request):
     # Fetch data from your database
     data = InventoryItem.objects.all().values_list()  # This fetches all Stock items as tuples
 
+    # Fetch headers dynamically from the database
+    headers = []
+    for field in InventoryItem._meta.get_fields():
+        if hasattr(field, 'verbose_name'):
+            headers.append(field.verbose_name.capitalize())
+
     # Create a workbook
     wb = Workbook()
     ws = wb.active
+    
+    ws.append(headers)
 
     # Write data to worksheet
     for row in data:
