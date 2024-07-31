@@ -1,0 +1,108 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  .top-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around; /* Adjust as needed */
+    height: 33vh; /* 1/3 of the viewport height */
+  }
+  
+  .bottom-container {
+    display: flex;
+    height: 67vh; /* Remaining 2/3 of the viewport height */
+  }
+  
+  .chart-container, .table-container {
+    flex: 1; /* Split the remaining space equally */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+    padding: 20px;
+  }
+  
+  /* Style for your table, buttons, and any additional components as needed */
+  /* table {
+    width: 100%; /* Full width of the container */
+    /* border-collapse: collapse;
+  }
+  
+  th, td {
+    border: 1px solid black;
+    text-align: left;
+    padding: 8px;
+  } */ 
+
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+table, th, td {
+    border: 1px solid #ddd;
+}
+th, td {
+    text-align: left;
+    padding: 8px;
+}
+th {
+    background-color: #2ca5ec;
+    color: white;
+}
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+tr:hover {
+    background-color: #ddd;
+}
+
+
+  
+  button {
+    margin: 5px;
+    padding: 10px 20px;
+  }
+  
+  @media (max-width: 768px) {
+    .bottom-container {
+      flex-direction: column;
+    }
+  }
+
+  .button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px; /* Adjust this value as needed for vertical spacing */
+    }
+    
+    .button-container form {
+    margin: 0 10px; /* Spacing between buttons */
+    }
+    
+    h1 {
+    text-align: center;
+    margin-top: 50px; /* Adjust this value as needed for spacing */
+    }
+    
+    button {
+    padding: 10px 20px; /* Button padding */
+    border: none; /* Remove border */
+    border-radius: 5px; /* Rounded corners */
+    background-color: #007bff; /* Bootstrap primary color */
+    color: white; /* Text color */
+    font-size: 16px; /* Text size */
+    cursor: pointer; /* Mouse cursor on hover */
+    transition: background-color 0.3s ease; /* Smooth background color transition */
+    }
+    
+    button:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+    }
+  
