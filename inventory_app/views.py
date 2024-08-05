@@ -53,6 +53,12 @@ def home(request):
 
 
 
+def server_status(request):
+    return JsonResponse({'status': 'alive'})
+
+
+
+
 def analyse(request):
     items = InventoryItem.objects.all()  # Retrieve all inventory items
 
