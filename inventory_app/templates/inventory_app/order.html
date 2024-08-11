@@ -1,0 +1,314 @@
+{% load static %}
+{% load order_tags %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Order Stock</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Handler for item selection changes
+            $('#item_select').change(function() {
+                var itemId = $(this).val();
+                if (itemId) {
+                    $.getJSON(`/get-locations-for-item/${itemId}/`, function(locations) {
+                        var locationSelect = $('#location_select');
+                        locationSelect.empty(); // Clear existing options
+                        locationSelect.append($('<option>').val('').text('Select a Location'));
+                        $.each(locations, function(i, location) {
+                            locationSelect.append($('<option>').val(location.id).text(location.name));
+                        });
+                    }).fail(function() {
+                        console.error('Error fetching locations');
+                    });
+        
+                    $.getJSON(`/get-item-details/${itemId}`, function(data) {
+                        $('#supplier').val(data.supplier || 'N/A');
+                        $('#units').val(data.units);
+                        $('#minimum_units').val(data.minimum_units);
+                        $('#cost').val(data.cost);
+                        $('#withdrawal_date').val(new Date().toISOString().slice(0, 10));
+                    }).fail(function() {
+                        console.error('Error fetching item details');
+                    });
+                } else {
+                    $('#location_select').empty().append($('<option>').val('').text('Select a Location'));
+                    $('#supplier').val('');
+                    $('#units').val('');
+                    $('#minimum_units').val('');
+                    $('#cost').val('');
+                }
+            });
+        
+            // Function to apply blinking effect to past dates
+            function checkDates() {
+                var today = new Date().setHours(0, 0, 0, 0); // Today's date without time part
+                $('#stock_table tbody tr').each(function() {
+                    var expectedByCell = $(this).find('td').eq(4); // Assuming "Expected by" is the 5th column
+                    var expectedDateStr = expectedByCell.text();
+                    var expectedDate = new Date(expectedDateStr).setHours(0, 0, 0, 0);
+        
+                    if (expectedDate < today) {
+                        expectedByCell.addClass('blinkingRed');
+                    }
+                });
+            }
+        
+            // Ensuring the checkDates function runs after any dynamically loaded content
+            setTimeout(checkDates, 500); // Adjust delay as necessary
+        });
+        </script>
+        
+    
+
+    <!-- <script>
+        $(document).ready(function() {
+            $('#item_select').change(function() {
+                var itemId = $(this).val();
+                if (itemId) {
+                    $.getJSON(`/get-locations-for-item/${itemId}/`, function(locations) {
+                        var locationSelect = $('#location_select');
+                        locationSelect.empty(); // Clear existing options
+                        locationSelect.append($('<option>').val('').text('Select a Location'));
+                        $.each(locations, function(i, location) {
+                            locationSelect.append($('<option>').val(location.id).text(location.name));
+                        });
+                    }).fail(function() {
+                        console.error('Error fetching locations');
+                    });
+
+                    // Existing code to fetch item details
+                    $.getJSON(`/get-item-details/${itemId}`, function(data) {
+                        $('#supplier').val(data.supplier || 'N/A');
+                        $('#units').val(data.units);
+                        $('#minimum_units').val(data.minimum_units);
+                        $('#cost').val(data.cost);
+                        $('#withdrawal_date').val(new Date().toISOString().slice(0, 10));
+                    }).fail(function() {
+                        console.error('Error fetching item details');
+                        $('#supplier').val('');
+                        $('#units').val('');
+                        $('#minimum_units').val('');
+                        $('#cost').val('');
+                    });
+                } else {
+                    $('#location_select').empty().append($('<option>').val('').text('Select a Location'));
+                    $('#supplier').val('');
+                    $('#units').val('');
+                    $('#minimum_units').val('');
+                    $('#cost').val('');
+                }
+            });
+        });
+
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            // Your existing $(document).ready() code
+
+            // Call checkDates function after the document is fully loaded
+            checkDates();
+        });
+
+        function checkDates() {
+            var today = new Date().setHours(0, 0, 0, 0); // Today's date without time part
+            $('#stock_table tbody tr').each(function() {
+                // Assuming "Expected by" is the 5th column (index 4)
+                var expectedByCell = $(this).find('td').eq(4);
+                var expectedDateStr = expectedByCell.text();
+                var expectedDate = new Date(expectedDateStr).setHours(0, 0, 0, 0);
+
+                if (expectedDate < today) {
+                    // Apply blinking effect if the expected date has passed
+                    expectedByCell.addClass('blinkingRed');
+                }
+            });
+        }
+
+    </script> -->
+
+    <script>
+        function filterBySecondColumn() {{
+        var filterText = document.getElementById('searchInput').value.toLowerCase(); // Convert to lowercase
+        var table = document.getElementById('stock_table');
+        var tr = table.getElementsByTagName('tr');
+    
+        for (var i = 0; i < tr.length; i++) {{
+            var td = tr[i].getElementsByTagName('td')[1]; // Target the second column (index 1)
+            if (td) {{
+            var textValue = td.textContent.toLowerCase() || td.innerText.toLowerCase(); // Convert to lowercase
+            if (filterText === "" || textValue.includes(filterText)) {{
+                tr[i].style.display = "";
+            }} else {{
+                tr[i].style.display = "none";
+            }}
+            }} 
+        }}
+        }}
+  </script>
+
+    <link rel="stylesheet" href="{% static 'inventory_app/css/admin.css' %}">
+
+    <style>
+    @keyframes blinker {  
+        50% { background-color: red; }
+      }
+      
+    .blinkingRed {
+        animation: blinker 1s linear infinite;
+        color: white; /* Ensure text is readable against the red background */
+      }
+    </style>
+</head>
+
+
+<body>
+    <h1>Order Stock</h1>
+
+    <div class="button-container">
+        <form action="/" method="get">
+          <button type="submit">Home</button>
+        </form>
+    </div>
+
+    <div class="container">
+        <div class="left">
+            <h2>Place Order</h2>
+        <form id="itemForm" method="POST" action="{% url 'order_view' %}">
+            {% csrf_token %}
+        <label for="item_select">Item:</label>
+        <select id="item_select" name="item">
+            <option value="">Select an Item</option>
+            {% for item in items %}
+            <option value="{{ item.id }}">{{ item.item }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="location_select">Location:</label>
+        <select id="location_select" name="location">
+            <option value="">Select a Location</option>
+            <!-- Options will be added dynamically based on the item selected -->
+        </select>
+        <!-- <input type="text" id="location" name="location" readonly> -->
+
+        <label for="supplier">Supplier:</label>
+        <input type="text" id="supplier" name="supplier" readonly>
+
+        <label for="units">Units available:</label>
+        <input type="text" id="units" name="units" readonly>
+
+        <label for="minimum_units">Minimum Units:</label>
+        <input type="text" id="minimum_units" name="minimum_units" readonly>
+
+        <label for="cost">Cost:</label>
+        <input type="text" id="cost" name="cost" readonly>
+
+        <label for="id_unit_ord">Units ordered:</label>
+        <input type="text" id="id_unit_ord" name="unit_ord">
+
+        <label for="id_request_date">Request Date:</label>
+        <input type="date" id="id_request_date" name="request_date">
+
+        <label for="id_requested_by">Requested By:</label>
+        <input type="text" id="id_requested_by" name="requested_by">
+
+        <label for="id_oracle_order_date">Oracle Order Date:</label>
+        <input type="date" id="id_oracle_order_date" name="oracle_order_date">
+
+        <label for="id_oracle_po">Oracle PO:</label>
+        <input type="text" id="id_oracle_po" name="oracle_po">
+
+        <label for="id_order_lead_time">Order Lead Time:</label>
+        <input type="date" id="id_order_lead_time" name="order_lead_time">
+
+        <br><br>
+        <button type="submit">Submit</button>
+    </form>
+</div>
+
+
+
+
+
+<div class="right">
+    <div class="tile">
+      <h2>On Order</h2>
+      <input type="text" id="searchInput" onkeyup="filterBySecondColumn()" placeholder="Search for items...">
+      <table id="stock_table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Location</th>
+            <th>Units Ordered</th>
+            <th>Oracle Order</th>
+            <th>Expected by</th>
+            <!-- <th>Request date</th> -->
+            <!-- <th>Ordered by</th> -->
+            <th>PO number ref.</th>
+            <th>Ordered by</th>
+            <th>Order Cost</th>
+            <th>Consolidate Stock</th>
+            <!-- <th>Order</th> -->
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in orders %}
+            {% if not item.completed %}
+              <tr>
+                  <td>{{ item.item }}</td>
+                  <td>{{ item.location }}</td>
+                  <td>{{ item.on_order }}</td>
+                  <td>{{ item.oracle_order_date }}</td>
+                  <td>{{ item.order_lead_time }}</td>
+                  <td>{{ item.oracle_po }}</td>
+                  <td>{{ item.requested_by }}</td>
+                  <td>{{ item.on_order|multiply:item.cost }}</td>
+                  <td><button type="button" onclick="completeOrder(this)" data-order-id="{{ item.id }}">Complete Order</button></td>
+              </tr>
+              {% endif %}
+          {% endfor %}
+      </tbody>
+      </table>
+    </div>
+  </div>
+    </div>
+
+<script>
+    function completeOrder(button) {
+    var orderId = $(button).data('order-id');
+    $.ajax({
+        url: `/consolidate-stock/${orderId}/`,
+        type: 'POST',
+        data: {
+            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+            order_id: orderId,
+        },
+        success: function(response) {
+            if(response.success) {
+                $(button).closest('tr').remove(); // Remove row on success
+                alert(response.message);
+            } else {
+                alert(response.message);
+            }
+        }
+    });
+}
+</script>
+
+{% if messages %}
+<script>
+    window.onload = function() {
+        {% for message in messages %}
+        alert("{{ message }}");
+        {% endfor %}
+    }
+</script>
+{% endif %}
+</body>
+</html>
+
+
+   

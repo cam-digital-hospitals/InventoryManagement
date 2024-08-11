@@ -1,0 +1,10 @@
+!**/.gitkeep
+
+**/__pycache__/*
+**/data/*
+**/django_secret_key
+
+*.DS_Store
+
+start_local.sh
+.todo

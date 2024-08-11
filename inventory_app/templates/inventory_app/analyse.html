@@ -1,0 +1,288 @@
+{% load static %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory Analysis</title>
+  <link rel="stylesheet" href="{% static 'inventory_app/css/home.css' %}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    function filterBySecondColumn() {{
+      var filterText = document.getElementById('searchInput').value.toLowerCase(); // Convert to lowercase
+      var table = document.getElementById('stock_table');
+      var tr = table.getElementsByTagName('tr');
+  
+      for (var i = 0; i < tr.length; i++) {{
+        var td = tr[i].getElementsByTagName('td')[1]; // Target the second column (index 1)
+        if (td) {{
+          var textValue = td.textContent.toLowerCase() || td.innerText.toLowerCase(); // Convert to lowercase
+          if (filterText === "" || textValue.includes(filterText)) {{
+            tr[i].style.display = "";
+          }} else {{
+            tr[i].style.display = "none";
+          }}
+        }} 
+      }}
+    }}
+  </script>
+
+<script>
+  function filterByThirdColumn() {{
+    var filterText = document.getElementById('searchInput2').value.toLowerCase(); // Convert to lowercase
+    var table = document.getElementById('stock_table');
+    var tr = table.getElementsByTagName('tr');
+
+    for (var i = 0; i < tr.length; i++) {{
+      var td = tr[i].getElementsByTagName('td')[2]; // Target the second column (index 1)
+      if (td) {{
+        var textValue = td.textContent.toLowerCase() || td.innerText.toLowerCase(); // Convert to lowercase
+        if (filterText === "" || textValue.includes(filterText)) {{
+          tr[i].style.display = "";
+        }} else {{
+          tr[i].style.display = "none";
+        }}
+      }} 
+    }}
+  }}
+</script>
+</head>
+
+
+
+<body>
+  <div class="top-container">
+    <h1>Inventory Analysis (experimental)</h1>
+    <div class="button-container">
+        <form action="/" method="get">
+            <button type="submit">Home</button>
+        </form>
+    </div>
+  </div>
+
+
+  <div class="bottom-container">
+    <div class="chart-container">
+      <h2>Stock Alerts</h2>
+    <canvas id="inventoryChart" width="200" height="50"></canvas>
+    <br>
+    <h2>Items Below Threshold by Location</h2>
+    <canvas id="thresholdChart" width="200" height="50"></canvas>
+    <br>
+    <h2>Order Lead Time Trends</h2>
+    <canvas id="leadTimeChart" width="200" height="50"></canvas>
+    <br>
+    <h2>Forecast</h2>
+    <canvas id="stockForecastChart" width="200" height="50"></canvas>
+  </div>
+
+
+ 
+
+
+  <div class="chart-container">
+    <h2>Withdrawal Trends (Top 5 Last Week)</h2>
+    <canvas id="withdrawalsChart" width="50" height="20"></canvas>
+    
+
+</div>
+
+
+    </div>
+
+      <script>
+        var ctx = document.getElementById('inventoryChart').getContext('2d');
+        var inventoryChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['On Order', 'Below Minimum', '5 More Than Minimum', 'Greater Than 5 More'],
+                datasets: [{
+                    label: '# of Items',
+                    data: [
+                        {{ items_on_order }},
+                        {{ items_below_minimum }},
+                        {{ items_5_more_than_minimum }},
+                        {{ items_greater_than_5_more_than_minimum }}
+                    ],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+
+<script>
+  var thresholdCtx = document.getElementById('thresholdChart').getContext('2d');
+  var thresholdChart = new Chart(thresholdCtx, {
+      type: 'bar',
+      data: {
+          labels: {{ locations|safe }},
+          datasets: [{
+              label: 'Items Below Threshold',
+              data: {{ below_threshold_counts|safe }},
+              backgroundColor: 'rgba(255, 159, 64, 0.2)',
+              borderColor: 'rgba(255, 159, 64, 1)',
+              borderWidth: 1
+          }]
+      },
+      options: {
+          scales: {
+              y: {
+                  beginAtZero: true
+              }
+          }
+      }
+  });
+</script>
+    
+<script>
+  var ctx = document.getElementById('withdrawalsChart').getContext('2d');
+  var withdrawalsChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+          labels: {{ items_labels|safe }},
+          datasets: [{
+              label: 'Top 5 Withdrawals Last Week',
+              data: {{ withdrawals_data|safe }},
+              backgroundColor: [
+                  'rgba(255, 99, 132, 0.2)',
+                  'rgba(54, 162, 235, 0.2)',
+                  'rgba(255, 206, 86, 0.2)',
+                  'rgba(75, 192, 192, 0.2)',
+                  'rgba(153, 102, 255, 0.2)',
+                  'rgba(255, 159, 64, 0.2)'
+              ],
+              borderColor: [
+                  'rgba(255, 99, 132, 1)',
+                  'rgba(54, 162, 235, 1)',
+                  'rgba(255, 206, 86, 1)',
+                  'rgba(75, 192, 192, 1)',
+                  'rgba(153, 102, 255, 1)',
+                  'rgba(255, 159, 64, 1)'
+              ],
+              borderWidth: 1
+          }]
+      },
+      options: {
+          scales: {
+              y: {
+                  beginAtZero: true
+              }
+          }
+      }
+  });
+  </script>
+
+
+<script>
+  var ctx = document.getElementById('leadTimeChart').getContext('2d');
+  var leadTimeChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+          labels: {{ items_lead_time_labels|safe }},
+          datasets: [{
+              label: 'Top 5 Lead Times (days)',
+              data: {{ lead_times|safe }},
+              backgroundColor: [
+                  'rgba(255, 99, 132, 0.2)',
+                  'rgba(54, 162, 235, 0.2)',
+                  'rgba(255, 206, 86, 0.2)',
+                  'rgba(75, 192, 192, 0.2)',
+                  'rgba(153, 102, 255, 0.2)'
+              ],
+              borderColor: [
+                  'rgba(255, 99, 132, 1)',
+                  'rgba(54, 162, 235, 1)',
+                  'rgba(255, 206, 86, 1)',
+                  'rgba(75, 192, 192, 1)',
+                  'rgba(153, 102, 255, 1)'
+              ],
+              borderWidth: 1
+          }]
+      },
+      options: {
+          scales: {
+              y: {
+                  beginAtZero: true
+              }
+          }
+      }
+  });
+  </script>
+  
+  <script>
+    // Assuming you pass 'items_forecast' from Django to JavaScript
+    // Convert your Django context 'items_forecast' to JSON in your view before passing to the template
+    const itemsForecast = {{ items_forecast|safe }};
+    const ctx = document.getElementById('stockForecastChart').getContext('2d');
+    const stockForecastChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: itemsForecast.map(item => item.item.item), // item name
+            datasets: [{
+                label: 'Days Until Stock Runs Out',
+                data: itemsForecast.map(item => item.days_until_out),
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Days'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Items'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                }
+            }
+        }
+    });
+</script>
+
+
+</body>
+</html>
+
+
+
+
+
+
+
+

@@ -1,0 +1,245 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Stock Check</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+    <!-- <script>
+        $(document).ready(function() {
+        $('#location_select').change(function() {
+            var locationName = $(this).val();
+            if (locationName) {
+                // Fetch items for the selected location by name
+                $.getJSON(`/get-items-for-location/${encodeURIComponent(locationName)}`, function(data) {
+                    var table = $('#items_table');
+                    table.find('tbody').empty(); // Clear existing rows
+                    $.each(data.items, function(index, item) {
+                        var row = `<tr>
+                            <td>${item.name}</td>
+                            <td><input type="number" id="units_${item.location}" value="${item.units}" data-location="${item.location}"></td>
+                        </tr>`;
+                        $('#items_table tbody').append(row);
+                    });
+                }).fail(function() {
+                    console.error('Error fetching items for location');
+                });
+            } else {
+                $('#items_table tbody').empty(); // Clear table if no location is selected
+            }
+        });
+    });
+    </script> -->
+    <style>
+        .status-container {
+          display: flex;
+          align-items: center;
+          margin-top: 10px;
+          font-weight: bold;
+        }
+        .status-circle {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          margin-right: 10px;
+        }
+        .status-alive .status-circle {
+          background-color: green;
+        }
+        .status-dead .status-circle {
+          background-color: red;
+        }
+      </style>
+
+    <script>
+        $(document).ready(function() {
+
+            $('#location_select').change(function() {
+            var locationName = $(this).val();
+            if (locationName) {
+                // Fetch items for the selected location by name
+                $.getJSON(`/get-items-for-location/${encodeURIComponent(locationName)}`, function(data) {
+                    var table = $('#items_table');
+                    table.find('tbody').empty(); // Clear existing rows
+                    $.each(data.items, function(index, item) {
+                        var row = `<tr>
+                            <td>${item.name}</td>
+                            <td><input type="number" id="units_${item.id}" value="${item.units}" data-location="${item.location}"></td>
+                        </tr>`;
+                        $('#items_table tbody').append(row);
+                    });
+                }).fail(function() {
+                    console.error('Error fetching items for location');
+                });
+            } else {
+                $('#items_table tbody').empty(); // Clear table if no location is selected
+            }
+        });
+
+
+        $('#itemForm').on('submit', function(e) {
+            e.preventDefault();  // Prevent the default form submission
+
+            var locationName = $('#location_select').val();
+            var unitsInputs = $('#items_table input[type="number"]'); // This selects all unit input fields in the table
+            var data = {
+                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+                'location': locationName
+            };
+
+            unitsInputs.each(function() {
+                var itemID = $(this).attr('id').split('_')[1];  // Assuming IDs are like 'units_1', 'units_2', etc.
+                var value = $(this).val();
+                if (typeof value === 'undefined' || value === "") {
+                    console.error('One or more unit values are undefined or empty.');
+                    return false;  // Stop the submission if any value is incorrect
+                }
+                data[`units_${itemID}`] = value;  // Collect all units values for inputs with IDs
+            });
+
+            // Make AJAX call to submit the data
+            $.ajax({
+                url: `/update-units-by-location/`,  // Adjust this URL as needed
+                method: 'POST',
+                data: data,
+                success: function(response) {
+                    alert('Units updated successfully!');
+                    location.reload();  // Optionally reload the page or redirect
+                },
+                error: function(xhr) {
+                    alert('Error updating units. ' + xhr.responseText);
+                }
+            });
+        });
+    });
+
+    </script>
+
+    <script>
+        function updateUnits(locationName) {
+            var unitsInputs = $(`input[data-location='${locationName}']`); // This selects all input fields with this location
+            var data = {
+                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+                'location': locationName
+            };
+
+            unitsInputs.each(function() {
+                var value = $(this).val();
+                if (typeof value === 'undefined' || value === "") {
+                    console.error('One or more unit values are undefined or empty.');
+                    return false; // Stops the function and does not send the AJAX request
+                }
+                data[$(this).attr('id')] = value; // Collect all units values for inputs tied to this location
+            });
+
+            $.ajax({
+                url: `/update-units-by-location/`,
+                method: 'POST',
+                data: data,
+                success: function(response) {
+                    alert('Units updated successfully!');
+                },
+                error: function(xhr) {
+                    alert('Error updating units. ' + xhr.responseText);
+                }
+            });
+        }
+
+    </script>
+
+
+<script>
+    function checkServerStatus() {
+          fetch('/server-status/')
+            .then(response => response.json())
+            .then(data => {
+              var statusContainer = document.getElementById('statusContainer');
+              if (data.status === 'alive') {
+                statusContainer.classList.remove('status-dead');
+                statusContainer.classList.add('status-alive');
+                document.getElementById('statusText').textContent = 'Server is alive';
+              } else {
+                statusContainer.classList.remove('status-alive');
+                statusContainer.classList.add('status-dead');
+                document.getElementById('statusText').textContent = 'Server is not responding';
+              }
+            })
+            .catch(error => {
+              var statusContainer = document.getElementById('statusContainer');
+              statusContainer.classList.remove('status-alive');
+              statusContainer.classList.add('status-dead');
+              document.getElementById('statusText').textContent = 'Server is not responding';
+            });
+        }
+    
+        setInterval(checkServerStatus, 5000); // Check every 5 seconds
+    </script>
+
+
+    <link rel="stylesheet" href="{% static 'inventory_app/css/admin.css' %}">
+</head>
+<body>
+    <h1>Stock Check</h1>
+
+    <div id="statusContainer" class="status-container status-alive">
+        <div class="status-circle"></div>
+        <div id="statusText">Checking server status...</div>
+      </div>
+
+    <div class="button-container">
+        <form action="/" method="get">
+          <button type="submit">Home</button>
+        </form>
+    </div>
+
+
+    <form id="itemForm" method="POST" action="{% url 'submit_withdrawal' %}">
+        {% csrf_token %}
+
+    <label for="location_select">Location:</label>
+    <select id="location_select" name="location">
+        <option value="">Select a Location</option>
+        {% for location in locations %}
+        <option value="{{ location.name }}">{{ location.name }}</option>
+        {% endfor %}
+    </select>
+    <input type="hidden" id="withdrawal_date" name="withdrawal_date" value="">
+    
+
+
+    <table id="items_table">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Units</th>
+                <!-- <th>Actions</th> -->
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Rows will be dynamically added here -->
+        </tbody>
+    </table>
+
+    <br><br>
+    <button type="submit">Submit</button>
+
+</form>
+
+
+
+
+
+
+{% if messages %}
+<script>
+    window.onload = function() {
+        {% for message in messages %}
+        alert("{{ message }}");
+        {% endfor %}
+    }
+</script>
+{% endif %}
+</body>
+</html>
