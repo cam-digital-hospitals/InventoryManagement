@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inv-mgmt
+  labels:
+    app: inv-mgmt
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inv-mgmt
+  template:
+    metadata:
+      labels:
+        app: inv-mgmt
+    spec:
+      containers:
+        - name: inv-mgmt
+          image: ghcr.io/cam-digital-hospitals/inv-mgmt:latest
+          command:
+            - /bin/bash
+            - -c
+          args:
+            - python manage.py migrate && python manage.py collectstatic --noinput && python manage.py runserver 0.0.0.0:8000
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DEBUG
+              value: "1"
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
