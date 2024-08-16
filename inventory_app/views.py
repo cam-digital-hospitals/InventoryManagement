@@ -13,8 +13,43 @@ from django.db import transaction
 from django.db.models import Count, Case, When, IntegerField, Sum, Max, Avg, F
 from django.db.models.functions import Coalesce
 from urllib.parse import unquote as urlunquote
+from django.views.decorators.csrf import csrf_exempt
 
 
+
+@csrf_exempt
+def get_item_by_barcode(request):
+    if request.method == 'POST':
+        barcode = request.POST.get('barcode')
+        try:
+            item = InventoryItem.objects.get(item_id=barcode)
+            data = {
+                'item_id': item.id,
+                'supplier': item.supplier,
+                'units': item.unit,
+                'minimum_units': item.minimum_unit,
+                'cost': item.cost,
+                # 'location_id': item.location.id,  # Location ID
+                'location_name': item.location.name,  # Location name
+            }
+            return JsonResponse(data)
+        except InventoryItem.DoesNotExist:
+            return JsonResponse({'error': 'Item not found'}, status=404)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+def get_item_details(request, item_id):
+    item = InventoryItem.objects.get(pk=item_id)
+    locations = item.location_set.all()  # Assuming each item is linked to multiple locations
+    
+    data = {
+        'supplier': item.supplier,
+        'units': item.unit,
+        'minimum_units': item.minimum_unit,
+        'cost': item.cost,
+        'locations': [{'id': loc.id, 'name': loc.name} for loc in locations]
+    }
+    
+    return JsonResponse(data)
 
 def home(request):
     items = InventoryItem.objects.all()  # Retrieve all inventory items
@@ -181,6 +216,8 @@ def get_items_for_location(request, location_name):
         return JsonResponse({'items': items_data})
     else:
         return JsonResponse({'error': 'Location not found'}, status=404)
+    
+
 
 def update_units_by_location(request):
     if request.method == 'POST':
@@ -299,45 +336,89 @@ def get_item_locations(request, item_id):
     
     return JsonResponse(list(locations), safe=False)
 
-
-
 def submit_withdrawal(request):
     if request.method == 'POST':
         item_id = request.POST.get('item')
-        location_id= request.POST.get('location')
-        units_withdrawn = int(request.POST.get('units_withdrawn'))
-        withdrawn_by = request.POST.get('withdrawn_by')
+        location_id = request.POST.get('location')
         
-        # Update InventoryItem
-        # item = InventoryItem.objects.get(id=item_id)
-        # item.unit -= units_withdrawn
-        # item.save()
+        # Ensure location_id is provided
+        if not location_id:
+            messages.error(request, 'Please select a location.')
+            return redirect('user')  # or however you want to handle this error
 
-        # Fetch the InventoryItem instance
-        item = get_object_or_404(InventoryItem, id=item_id)
+        units_withdrawn = request.POST.get('units_withdrawn')
         
-        # Fetch the Location instance
+        # Ensure units_withdrawn is provided
+        if not units_withdrawn:
+            messages.error(request, 'Please enter the units to be withdrawn.')
+            return redirect('user')
+        
+        try:
+            units_withdrawn = int(units_withdrawn)
+        except ValueError:
+            messages.error(request, 'Invalid units value.')
+            return redirect('user')
+
+        # Fetch the InventoryItem and Location instances
+        item = get_object_or_404(InventoryItem, id=item_id)
         location = get_object_or_404(Location, id=location_id)
         
         # Update InventoryItem units
         item.unit -= units_withdrawn
         item.save()
         
-        # Record the withdrawal with Location instance
+        # Record the withdrawal
         ItemWithdrawal.objects.create(
             item=item,
-            location=location,  # Assign the Location instance here
+            location=location,
             units_withdrawn=units_withdrawn,
-            withdrawn_by=withdrawn_by,
+            withdrawn_by=request.POST.get('withdrawn_by'),
             date_withdrawn=timezone.now()
         )
         
         messages.success(request, 'Successfully recorded.')
-        items = InventoryItem.objects.all().order_by('item')
-
-        return render(request, 'inventory_app/user.html', {'items': items})
+        return redirect('user')
     else:
         return HttpResponse("Invalid request", status=400)
+
+
+# def submit_withdrawal(request):
+#     if request.method == 'POST':
+#         item_id = request.POST.get('item')
+#         location_id= request.POST.get('location')
+#         units_withdrawn = int(request.POST.get('units_withdrawn'))
+#         withdrawn_by = request.POST.get('withdrawn_by')
+        
+#         # Update InventoryItem
+#         # item = InventoryItem.objects.get(id=item_id)
+#         # item.unit -= units_withdrawn
+#         # item.save()
+
+#         # Fetch the InventoryItem instance
+#         item = get_object_or_404(InventoryItem, id=item_id)
+        
+#         # Fetch the Location instance
+#         location = get_object_or_404(Location, id=location_id)
+        
+#         # Update InventoryItem units
+#         item.unit -= units_withdrawn
+#         item.save()
+        
+#         # Record the withdrawal with Location instance
+#         ItemWithdrawal.objects.create(
+#             item=item,
+#             location=location,  # Assign the Location instance here
+#             units_withdrawn=units_withdrawn,
+#             withdrawn_by=withdrawn_by,
+#             date_withdrawn=timezone.now()
+#         )
+        
+#         messages.success(request, 'Successfully recorded.')
+#         items = InventoryItem.objects.all().order_by('item')
+
+#         return render(request, 'inventory_app/user.html', {'items': items})
+#     else:
+#         return HttpResponse("Invalid request", status=400)
 
 
 

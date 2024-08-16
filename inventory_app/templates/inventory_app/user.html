@@ -27,35 +27,58 @@
         }
       </style>
 
-    <script>
-        $(document).ready(function() {
+<script>
+       $(document).ready(function() {
+
+        // Prevent form submission when pressing Enter in the barcode input
+    $('#barcode_input').on('keypress', function(event) {
+        if (event.keyCode === 13) {  // Enter key code
+            event.preventDefault();  // Prevent the form from submitting
+        }
+    });
+    
+
+    $('#barcode_input').on('input', function() {
+        var barcode = $(this).val().trim();
+        if (barcode) {
+            // Find the item with the matching barcode
+            $('#item_select option').each(function() {
+                if ($(this).data('barcode') === barcode) {
+                    $(this).prop('selected', true).change();
+                    return false; // Break the loop
+                }
+            });
+        }
+    });
+
+    // Handle item selection
     $('#item_select').change(function() {
-        var itemId = $(this).val();
+        var selectedOption = $(this).find('option:selected');
+        var barcode = selectedOption.data('barcode');
+        
+        if (barcode) {
+            $('#barcode_input').val(barcode);
+        }
+
+        var itemId = selectedOption.val();
         if (itemId) {
-            // Existing AJAX call for item details
+            // Fetch item details and locations based on the selected item
             $.getJSON(`/get-item-details/${itemId}`, function(data) {
                 $('#supplier').val(data.supplier || 'N/A');
                 $('#units').val(data.units);
                 $('#minimum_units').val(data.minimum_units);
                 $('#cost').val(data.cost);
-                $('#withdrawal_date').val(new Date().toISOString().slice(0, 10));
-                // More fields updated here...
-            }).fail(function() {
-                console.error('Error fetching item details');
-                // Reset item details fields if error
-            });
 
-            // New AJAX call for updating locations based on the selected item
-            $.getJSON(`/get-item-locations/${itemId}`, function(locations) {
+                // Update the location dropdown
                 var locationSelect = $('#location_select');
-                locationSelect.empty(); // Clear existing options
-                locationSelect.append('<option value="">Select a Location</option>'); // Default option
-                $.each(locations, function(index, location) {
+                locationSelect.empty();
+                locationSelect.append('<option value="">Select a Location</option>');
+                $.each(data.locations, function(index, location) {
                     locationSelect.append($('<option></option>').attr('value', location.id).text(location.name));
                 });
             }).fail(function() {
-                console.error('Error fetching item locations');
-                $('#location_select').empty().append('<option value="">Select a Location</option>'); // Reset if error
+                console.error('Error fetching item details');
+                alert('Error fetching item details.');
             });
         } else {
             // Reset fields if no item is selected
@@ -63,15 +86,12 @@
             $('#units').val('');
             $('#minimum_units').val('');
             $('#cost').val('');
-            $('#location_select').empty().append('<option value="">Select a Location</option>'); // Reset locations
-                }
-            });
+            $('#location_select').empty().append('<option value="">Select a Location</option>');
+        }
+    });
+});
 
-            // Optionally, trigger the change event on page load
-            // $('#item_select').trigger('change');
-        });
-
-    </script>
+</script>
 
 <script>
     function checkServerStatus() {
@@ -152,42 +172,43 @@
 
     <form id="itemForm" method="POST" action="{% url 'submit_withdrawal' %}">
         {% csrf_token %}
-    <label for="item_select">Item:</label>
-    <select id="item_select" name="item">
-        <option value="">Select an Item</option>
-        {% for item in items %}
-        <option value="{{ item.id }}">{{ item.item }}</option>
-        {% endfor %}
-    </select>
 
-    <label for="location_select">Location:</label>
-    <select id="location_select" name="location">
-        <option value="">Select a Location</option>
-        <!-- Options will be added dynamically based on the item selected -->
-    </select>
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 
+        <label for="barcode_input">Scan Barcode:</label>
+        <input type="text" id="barcode_input" name="barcode_input" autofocus>
+        
+        <label for="item_select">Item:</label>
+        <select id="item_select" name="item">
+            <option value="">Select an Item</option>
+            {% for item in items %}
+            <option value="{{ item.id }}">{{ item.item }}</option>
+            {% endfor %}
+        </select>
+        
+        
+        <!-- Other form fields like supplier, units, etc. -->
+        <label for="supplier">Supplier:</label>
+        <input type="text" id="supplier" name="supplier" readonly>
+        
+        <label for="units">Units:</label>
+        <input type="text" id="units" name="units" readonly>
+        
+        <label for="minimum_units">Minimum Units:</label>
+        <input type="text" id="minimum_units" name="minimum_units" readonly>
+        
+        <label for="cost">Cost:</label>
+        <input type="text" id="cost" name="cost" readonly>
 
-    <label for="supplier">Supplier:</label>
-    <input type="text" id="supplier" name="supplier" readonly>
+        <label for="withdrawn_by">Withdrawn By:</label>
+        <input type="text" id="withdrawn_by" name="withdrawn_by">
 
-    <label for="units">Units:</label>
-    <input type="text" id="units" name="units" readonly>
+        <label for="units_withdrawn">Units Withdrawn:</label>
+        <input type="number" id="units_withdrawn" name="units_withdrawn">
 
-    <label for="minimum_units">Minimum Units:</label>
-    <input type="text" id="minimum_units" name="minimum_units" readonly>
-
-    <label for="cost">Cost:</label>
-    <input type="text" id="cost" name="cost" readonly>
-
-    <label for="withdrawn_by">Withdrawn By:</label>
-    <input type="text" id="withdrawn_by" name="withdrawn_by">
-
-    <label for="units_withdrawn">Units Withdrawn:</label>
-    <input type="number" id="units_withdrawn" name="units_withdrawn">
-
-    <input type="hidden" id="withdrawal_date" name="withdrawal_date" value="">
-    <br><br>
-    <button type="submit">Submit</button>
+        <input type="hidden" id="withdrawal_date" name="withdrawal_date" value="">
+        <br><br>
+        <button type="submit">Submit</button>
 </form>
 
 

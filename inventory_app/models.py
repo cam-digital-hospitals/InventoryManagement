@@ -13,6 +13,7 @@ class Location(models.Model):
 
 class InventoryItem(models.Model):
     item = models.CharField(max_length=255)
+    item_id = models.CharField(max_length=255, default='No barcode')
     location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='inventory_items')
     supplier = models.CharField(max_length=255)
     quantity_per_unit = models.CharField(max_length=100)  # Assuming this is a descriptive field
@@ -28,6 +29,8 @@ class InventoryItem(models.Model):
 class ItemWithdrawal(models.Model):
     item = models.ForeignKey(InventoryItem, on_delete=models.CASCADE)
     location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, blank=True, related_name='withdrawals')
+    withdrawal_item_id = models.ForeignKey(InventoryItem, on_delete=models.SET_NULL, null=True, blank=True, related_name='withdrawal_item')
+    # item_id = models.CharField(max_length=255, default='No barcode')
     date_withdrawn = models.DateTimeField(default=timezone.now)
     units_withdrawn = models.IntegerField()
     withdrawn_by = models.CharField(max_length=255)

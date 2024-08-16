@@ -33,6 +33,7 @@ class StockAddForm(forms.ModelForm):
             'cost': NumberInput(attrs={'step': "0.01"}),
             'item': TextInput(attrs={'type': 'text'}),
             'location': TextInput(attrs={'type': 'text'}),
+            'item_id': TextInput(attrs={'type': 'text', 'autofocus': 'autofocus'}),
             'supplier': TextInput(attrs={'type': 'text'}),
             'quantity_per_unit': TextInput(attrs={'type': 'text'}),
             'supplier_link': TextInput(attrs={'type': 'text'}),

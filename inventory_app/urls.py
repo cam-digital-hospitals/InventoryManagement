@@ -22,6 +22,8 @@ urlpatterns = [
     path('analyse/', views.analyse, name='analyse'),
     path('item/', views.item_search, name='item_search'),
     path('server-status/', views.server_status, name='server_status'),
+    path('get-item-by-barcode/', views.get_item_by_barcode, name='get_item_by_barcode'),
+    path('get-item-details/<int:item_id>/', views.get_item_details, name='get_item_details'),
 
     # Define other URLs for your app
 ]

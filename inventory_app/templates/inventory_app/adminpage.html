@@ -113,6 +113,9 @@
         <form method="POST" action="{% url 'admin_view' %}">
           {% csrf_token %}
           {{ add_form.as_p }}
+
+          <input type="text" id="barcodeInput" name="item_id" placeholder="Scan Barcode" required autofocus>
+
           {% if add_error_message %}
             <p style="color: red;">{{ add_error_message }}</p>
           {% endif %}
